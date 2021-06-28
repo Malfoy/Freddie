@@ -20,10 +20,29 @@ using namespace std;
 
 
 
-typedef uint64_t kmer;
+typedef __uint128_t kmer;
+// typedef uint64_t kmer;
+namespace std {
+template <>
+  struct hash<__uint128_t>
+  {
+    size_t operator()(const kmer& k) const
+    {
+
+      // Compute individual hash values for first,
+      // second and third and combine them using XOR
+      // and bit shifting:
+
+      return (k>>64)+(uint64_t)k;
+    }
+  };
+}
+
 typedef uint8_t color;
 // key = kmer, value = pair (color: genomes where the kmer occurs. Max 8 genomes, boolean: has been seen (for feeding venn diagrams))
 typedef robin_hood::unordered_flat_map<kmer, pair<color,bool>> Map;
+
+
 
 
 // severe limitation here, todo: authorize more than 8 colors.
