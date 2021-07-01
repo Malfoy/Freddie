@@ -182,7 +182,6 @@ string num2str(const kmer& str,const int k) {
 
 
 kmer str2num(const string& str) {
-    // cout<<str<<endl;
     kmer result;
 	unsigned char byte(0);
     uint64_t i;
@@ -204,8 +203,6 @@ kmer str2num(const string& str) {
 		}
         i++;
         if(i%4==0){
-            // print_char_bits(byte);
-            // cout<<"push_back"<<endl;
             result.push_back(byte);
             byte = 0;
         }
@@ -213,13 +210,6 @@ kmer str2num(const string& str) {
     if((i%4)!=0){
         byte<<=(2*(4-(i%4)));
         result.push_back(byte);
-    }
-    if(num2str(result,63)!=str){
-        cout<<str<<endl;
-        print_string_bits(result);
-        cout<<num2str(result,63)<<endl;
-        cout<<"probleme"<<endl;
-        cin.get();
     }
 	return result;
 }
@@ -291,7 +281,7 @@ uint64_t load_reference(Map map[], const string file_name, int reference_number)
 		}
 		if (not ref.empty()) {
 			// read all kmers from the ref sequence
-			for (uint64_t j(0); j + k < ref.size(); ++j) {
+			for (uint64_t j(0); j + k <= ref.size(); ++j) {
 				canon = get_canon(ref.substr(j,k),k);
 				uint Hache(hasher(canon) % 16);
 				nutex[Hache].lock();
@@ -326,8 +316,8 @@ vector<uint64_t> load_reference_file(Map map[], const string& file_name) {
 		if (ref_file.size() > 1) {
 			result.push_back(load_reference(map, ref_file, reference_number));
 			color_number++;
+			reference_number++;
 		}
-		reference_number++;
 	}
 	return result;
 }
@@ -359,7 +349,7 @@ vector<uint64_t> Venn_evaluation(Map map[], const string& file_name, int size_re
 			// enables to store in results once all kmers.
 			// optimisable (eg with a set once initialy reading kmers)
             string canon;
-			for (uint64_t j(0); j + k < ref.size(); ++j) {
+			for (uint64_t j(0); j + k <= ref.size(); ++j) {
 				canon = get_canon(ref.substr(j,k),k);
 				uint Hache(hasher(canon) % 16);
 				nutex[Hache].lock();
@@ -368,6 +358,10 @@ vector<uint64_t> Venn_evaluation(Map map[], const string& file_name, int size_re
 					done=map[Hache][canon].second;
 					map[Hache][canon].second=true;
 				}else{
+					// cout<<"notfound"<<endl;
+					// cout<<canon<<endl;
+					// cout<<j<<endl;
+					// cout<<ref.substr(j,k)<<endl;
 					c=0;
 					done=false;
 				}
@@ -771,6 +765,7 @@ int main(int argc, char** argv) {
 	Map map[16];
 	cout<<"LOAD REFERENCES"<<endl;
 	vector<uint64_t> cardinalities(load_reference_file(map, inputFILE));
+	cout<<cardinalities[0]<<endl;
 	cout<<"VENN EVALUATION"<<endl;
 	vector<uint64_t> venn(Venn_evaluation(map, inputRef,1<<(cardinalities.size())));
 	cout<<"Completness EVALUATION"<<endl;
