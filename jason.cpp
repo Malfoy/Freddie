@@ -2,6 +2,7 @@
 #include <math.h>
 #include "strict_fstream.hpp"
 #include "zstr.hpp"
+#include "sparse_map.h"
 #include <algorithm>
 #include <array>
 #include <chrono>
@@ -17,6 +18,7 @@
 
 
 
+
 using namespace std;
 
 
@@ -26,7 +28,7 @@ typedef uint8_t color;
 
 hash<string> hasher;
 // key = kmer, value = pair (color: genomes where the kmer occurs. Max 8 genomes, boolean: has been seen (for feeding venn diagrams))
-typedef robin_hood::unordered_flat_map<kmer, pair<color,bool>> Map;
+typedef tsl::sparse_map<kmer, pair<color,bool>> Map;
 
 
 // severe limitation here, todo: authorize more than 8 colors.
@@ -282,7 +284,7 @@ uint64_t load_reference(Map map[], const string file_name, int reference_number)
 	while (not in.eof()) {
         string canon;
 		string ref, useless;
-#pragma omp critical(file_ref)
+    #pragma omp critical(file_ref)
 		{
 			getline(in, useless);   // read a comment, useless
 			getline(in, ref);		// read the ACGT sequence
@@ -364,7 +366,6 @@ vector<uint64_t> Venn_evaluation(Map map[], const string& file_name, int size_re
 				if (map[Hache].count(canon) != 0) {
 					c = map[Hache][canon].first;
 					done=map[Hache][canon].second;
-                    // cout<<"done?"<<endl;
 					map[Hache][canon].second=true;
 				}else{
 					c=0;
@@ -754,7 +755,7 @@ void count_break_and_errors(Map map[], const string& file_name) {
 
 int main(int argc, char** argv) {
 	if (argc < 3) {
-		cout << "[Reference file of file] [query file] (kmer size default:63) (core to use default:16) " << endl;
+		cout << "[Reference file of file] [query file] [kmer size] (core to use default:16) " << endl;
 		exit(0);
 	}
 	if (argc > 3) {

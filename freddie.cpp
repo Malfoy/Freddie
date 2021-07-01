@@ -766,13 +766,11 @@ void count_break_and_errors(Map map[], const string& file_name) {
 
 
 int main(int argc, char** argv) {
-	if (argc < 3) {
-		cout << "[Reference file of file] [query file] (kmer size) (perform 2^n pass) " << endl;
+	if (argc < 4) {
+		cout << "[Reference file of file] [query file] [kmer size]  " << endl;
 		exit(0);
 	}
-	if (argc > 3) {
-		k = (stoi(argv[3]));
-	}
+	k = (stoi(argv[3]));
 	offsetUpdateAnchors <<= (2 * (k));
 	auto start = chrono::system_clock::now();
 	string inputFILE(argv[1]);
@@ -784,13 +782,10 @@ int main(int argc, char** argv) {
 	cout<<"VENN EVALUATION"<<endl;
 	vector<uint64_t> venn(Venn_evaluation(map, inputRef,1<<(cardinalities.size())));
 	cout<<"Completness EVALUATION"<<endl;
+
 	evaluate_completness(cardinalities, venn, cardinalities.size());
 	cout<<"BREAKS EVALUATION"<<endl;
 	count_break_and_errors(map, inputRef);
-	// cout<<"Contigs with breaks:	"<<intToString(breaks.first)<<"	Phasing breaks (total):	" << intToString(breaks.second )<< endl;
-	// cout<<"ERRORS EVALUATION"<<endl;
-	// auto errors(count_errors(map, inputRef));
-	// cout<<"Contigs with errors:	"<<intToString(errors.first)<<"	Errors (total):	" << intToString(errors.second) << endl;
 	auto end                                 = chrono::system_clock::now();
 	chrono::duration<double> elapsed_seconds = end - start;
 	time_t end_time                          = chrono::system_clock::to_time_t(end);
