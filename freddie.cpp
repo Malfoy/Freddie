@@ -41,7 +41,8 @@ template <>
 
 typedef uint8_t color;
 // key = kmer, value = pair (color: genomes where the kmer occurs. Max 8 genomes, boolean: has been seen (for feeding venn diagrams))
-typedef tsl::sparse_map<kmer, pair<color,bool>> Map;
+// typedef tsl::sparse_map<kmer, pair<color,bool>> Map;
+typedef robin_hood::unordered_flat_map<kmer, pair<color,bool>> Map;
 
 
 

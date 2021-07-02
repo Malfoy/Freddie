@@ -41,7 +41,8 @@ template <>
 
 typedef uint8_t color;
 // key = kmer, value = pair (color: genomes where the kmer occurs. Max 8 genomes, boolean: has been seen (for feeding venn diagrams))
-typedef tsl::sparse_map<kmer, pair<color,bool>> Map;
+// typedef tsl::sparse_map<kmer, pair<color,bool>> Map;
+typedef robin_hood::unordered_flat_map<kmer, pair<color,bool>> Map;
 
 
 
@@ -307,7 +308,6 @@ vector<uint64_t> load_reference_file(Map map[], const string& file_name,uint i) 
 	while (not in.eof()) {
 		getline(in, ref_file);
 		if (ref_file.size() > 1) {
-            // cout<<i<<" "<<ref_file<<endl;
 			result.push_back(load_reference(map, ref_file, reference_number,i));
             if(i==0){
                 color_number++;
@@ -428,48 +428,6 @@ void evaluate_completness(const vector<uint64_t>& cardinalities, const vector<ui
 }
 
 
-
-
-
-int64_t get_major_color(const string& ref,Map map[]){
-	vector<int64_t> color_count(color_number,0);
-	int64_t total(0);
-	kmer seq(str2num(ref.substr(0, k))), rcSeq(rcb(seq, k)), canon(min(seq, rcSeq));
-	uint Hache(hash64shift(canon) % 16);
-	string colorstr;
-	if (map[Hache].count(canon) != 0) {
-		colorstr=get_color_code( map[Hache][canon].first);
-		for(int i(0);i<color_number;++i){
-			if(colorstr[i]=='1'){
-				color_count[i]++;
-			}
-		}
-		total++;
-	}
-	for (uint64_t j(0); j + k < ref.size(); ++j) {
-		updateK(seq, ref[j + k]);
-		updateRCK(rcSeq, ref[j + k]);
-		canon = (min(seq, rcSeq));
-		uint Hache(hash64shift(canon) % 16);
-		if (map[Hache].count(canon) != 0) {
-			colorstr=get_color_code( map[Hache][canon].first);
-			for(int i(0);i<color_number;++i){
-				if(colorstr[i]=='1'){
-					color_count[i]++;
-				}
-			}
-		}
-		total++;
-	}
-	int64_t max(0),max_id(0);
-	for(int i(0);i<color_number;++i){
-		if(color_count[i]>max){
-			max=color_count[i];
-			max_id=i;
-		}
-	}
-	return max_id;
-}
 
 
 

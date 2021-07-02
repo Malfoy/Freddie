@@ -31,6 +31,7 @@ hash<string> hasher;
 typedef tsl::sparse_map<kmer, pair<color,bool>> Map;
 
 
+
 // severe limitation here, todo: authorize more than 8 colors.
 int max_color(8);
 int color_number(0);
