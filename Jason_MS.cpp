@@ -1,4 +1,5 @@
 #include <math.h>
+#include "robin_hood.h"
 #include "strict_fstream.hpp"
 #include "zstr.hpp"
 #include "sparse_map.h"
@@ -27,7 +28,9 @@ typedef uint8_t color;
 
 hash<string> hasher;
 // key = kmer, value = pair (color: genomes where the kmer occurs. Max 8 genomes, boolean: has been seen (for feeding venn diagrams))
-typedef tsl::sparse_map<kmer, pair<color,bool>> Map;
+// typedef tsl::sparse_map<kmer, pair<color,bool>> Map;
+typedef robin_hood::unordered_flat_map<kmer, pair<color,bool>> Map;
+
 
 
 
@@ -215,13 +218,13 @@ kmer str2num(const string& str) {
         byte<<=(2*(4-(i%4)));
         result.push_back(byte);
     }
-    if(num2str(result,63)!=str){
-        cout<<str<<endl;
-        print_string_bits(result);
-        cout<<num2str(result,63)<<endl;
-        cout<<"probleme"<<endl;
-        cin.get();
-    }
+    // if(num2str(result,k)!=str){
+    //     cout<<str<<endl;
+    //     print_string_bits(result);
+    //     cout<<num2str(result,63)<<endl;
+    //     cout<<"probleme"<<endl;
+    //     cin.get();
+    // }
 	return result;
 }
 
@@ -300,7 +303,7 @@ uint64_t load_reference(Map map[], const string file_name, int reference_number,
 		}
 		if (not ref.empty()) {
 			// read all kmers from the ref sequence
-			for (uint64_t j(0); j + k < ref.size(); ++j) {
+			for (uint64_t j(0); j + k <= ref.size(); ++j) {
 				canon = get_canon(ref.substr(j,k),k);
 				uint H(hasher(canon)); 
 				uint Hache(H%16);
@@ -373,7 +376,7 @@ vector<uint64_t> Venn_evaluation(Map map[], const string& file_name, int size_re
 			// enables to store in results once all kmers.
 			// optimisable (eg with a set once initialy reading kmers)
             string canon;
-			for (uint64_t j(0); j + k < ref.size(); ++j) {
+			for (uint64_t j(0); j + k <= ref.size(); ++j) {
 				canon = get_canon(ref.substr(j,k),k);
 				uint H(hasher(canon)); 
 				uint Hache(H%16);
@@ -460,6 +463,7 @@ int main(int argc, char** argv) {
 	string inputRef(argv[2]);
 
 	Map map[16];
+	cout<<"K="+to_string(k)<<endl;
 	vector<uint64_t> cardinalities,venn;
     for(uint i(0); i < steps;++i){
 		cout<<"Step "<<to_string(i)<<endl;

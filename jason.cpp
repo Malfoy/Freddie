@@ -27,9 +27,26 @@ typedef string kmer;
 typedef uint8_t color;
 
 hash<string> hasher;
-// key = kmer, value = pair (color: genomes where the kmer occurs. Max 8 genomes, boolean: has been seen (for feeding venn diagrams))
-typedef tsl::sparse_map<kmer, pair<color,bool>> Map;
 
+
+// namespace std {
+// template <>
+//   struct hash<kmer>
+//   {
+//     size_t operator()(const kmer& k) const
+//     {
+
+//       // Compute individual hash values for first,
+//       // second and third and combine them using XOR
+//       // and bit shifting:
+
+//       return hasher(k);
+//     }
+//   };
+// }
+// key = kmer, value = pair (color: genomes where the kmer occurs. Max 8 genomes, boolean: has been seen (for feeding venn diagrams))
+// typedef tsl::sparse_map<kmer, pair<color,bool>> Map;
+typedef robin_hood::unordered_flat_map<kmer, pair<color,bool>> Map;
 
 
 // severe limitation here, todo: authorize more than 8 colors.

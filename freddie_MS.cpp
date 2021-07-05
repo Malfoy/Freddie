@@ -441,6 +441,7 @@ int main(int argc, char** argv) {
 	if (argc > 4) {
 		steps = (stoi(argv[4]));
 	}
+	k=(stoi(argv[3]));
 	offsetUpdateAnchors <<= (2 * (k));
 	auto start = chrono::system_clock::now();
 	string inputFILE(argv[1]);
@@ -448,6 +449,7 @@ int main(int argc, char** argv) {
 
 	Map map[16];
     vector<uint64_t> venn,cardinalities;
+	cout<<"K="+to_string(k)<<endl;
     for(uint i(0);i<steps;++i){
         cout<<"Step "+to_string(i+1)<<endl;
         cout<<"LOAD REFERENCES"<<endl;
