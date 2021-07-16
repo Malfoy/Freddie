@@ -256,18 +256,27 @@ uint64_t load_reference(Map map[], const string file_name, int reference_number,
 			getline(in, useless);   // read a comment, useless
 			getline(in, ref);		// read the ACGT sequence
 		}
-		if (not ref.empty()) {
+		if (ref.size()>=k) {
 			// read all kmers from the ref sequence
 			kmer seq(str2num(ref.substr(0, k))), rcSeq(rcb(seq, k)), canon(min(seq, rcSeq));
 			uint H(hash64shift(canon));
 			uint Hache( H% 16);
             if((H/16)%steps==i){
                 nutex[Hache].lock();
-                // for this kmer, set its indexed value adding the reference_number
-                set_color(map[Hache][canon].first, reference_number);
-                nutex[Hache].unlock();
-                #pragma omp atomic
-			    result++;
+                if (map[Hache].count(canon) == 0) {
+					// for this kmer, set its indexed value adding the reference_number
+					set_color(map[Hache][canon].first, reference_number);
+					#pragma omp atomic
+					result++;
+				}else{
+					if(not is_set(reference_number,map[Hache][canon].first)){
+						// for this kmer, set its indexed value adding the reference_number
+						set_color(map[Hache][canon].first, reference_number);
+						#pragma omp atomic
+						result++;
+					}
+				}
+				nutex[Hache].unlock();
             }
             
 			for (uint64_t j(0); j + k < ref.size(); ++j) {
@@ -278,11 +287,21 @@ uint64_t load_reference(Map map[], const string file_name, int reference_number,
                 uint Hache( H% 16);
                 if((H/16)%steps==i){
                     nutex[Hache].lock();
-                    // for this kmer, set its indexed value adding the reference_number
-                    set_color(map[Hache][canon].first, reference_number);
+                    if (map[Hache].count(canon) == 0) {
+						// for this kmer, set its indexed value adding the reference_number
+						set_color(map[Hache][canon].first, reference_number);
+						#pragma omp atomic
+						result++;
+					}else{
+						if(not is_set(reference_number,map[Hache][canon].first)){
+							// for this kmer, set its indexed value adding the reference_number
+							set_color(map[Hache][canon].first, reference_number);
+							#pragma omp atomic
+							result++;
+						}
+					}
                     nutex[Hache].unlock();
-                    #pragma omp atomic
-                        result++;
+                    
                 }
 			}
 		}
@@ -350,7 +369,7 @@ vector<uint64_t> Venn_evaluation(Map map[], const string& file_name, int size_re
                 nutex[Hache].lock();
                 // enables to store in results once all kmers.
                 // optimisable (eg with a set once initialy reading kmers)
-                if (map[Hache].count(canon) != 0) { // should always be true (?pierre?)
+                if (map[Hache].count(canon) != 0) { 
                     c = map[Hache][canon].first;
                     done=map[Hache][canon].second;
                     map[Hache][canon].second=true; // validate if this kmer has already been seen
@@ -422,7 +441,7 @@ void evaluate_completness(const vector<uint64_t>& cardinalities, const vector<ui
 	out.close();
 	for (uint64_t i(0); i < counted.size(); ++i) {
 		cout<<"Kmers  found from file:	" << i << "	" <<intToString(counted[i])  << endl;
-		// cout<<"Card  of file:	" << i << "	" << cardinalities[i]  << endl;
+		cout<<"Card  of file:	" << i << "	" << cardinalities[i]  << endl;
 		cout<<"Completness % for file:	" << i << "	" << (double)100 * counted[i] / cardinalities[i] << endl;
 	}
 }
